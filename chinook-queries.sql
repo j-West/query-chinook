@@ -77,39 +77,110 @@ FROM Invoice
 GROUP By BillingCountry;
 
 -- 15. Provide a query that shows the total number of tracks in each playlist. The Playlist name should be include on the resultant table.
-
+SELECT p.Name AS Playlist_Name, COUNT(pt.TrackId) AS Num_Of_Tracks
+FROM PlaylistTrack pt
+Left Join Playlist p
+WHERE p.PlaylistId = pt.PlaylistId
+GROUP BY p.PlaylistId;
 
 -- 16. Provide a query that shows all the Tracks, but displays no IDs. The resultant table should include the Album name, Media type and Genre.
-
+SELECT t.Name, t.Composer, t.Milliseconds, t.Bytes, t.UnitPrice, a.title AS Album, g.Name AS Genre, m.Name AS Media_Type
+FROM Track t, Album a, Genre g, MediaType m
+ON t.AlbumId = a.AlbumId
+AND t.GenreId = g.GenreId
+AND t.MediaTypeId = m.MediaTypeId;
 
 -- 17. Provide a query that shows all Invoices but includes the # of invoice line items.
-
+SELECT i.*, COUNT(il.InvoiceId)
+FROM Invoice i, InvoiceLine il
+ON i.invoiceId = il.InvoiceId
+GROUP BY i.InvoiceId;
 
 -- 18. Provide a query that shows total sales made by each sales agent.
-
+SELECT e.FirstName || ' ' || e.LastName AS Employee_Name, COUNT(i.InvoiceId) AS Num_Of_Sales
+FROM Invoice i, Customer c, Employee e
+ON i.CustomerId = c.CustomerId
+AND c.SupportRepId = e.EmployeeId
+GROUP BY e.EmployeeId
 
 -- 19. Which sales agent made the most in sales in 2009?
+-- Steve Johnson made the most sales in 2009 with 164.34
+SELECT e.FirstName || ' ' || e.LastName AS Employee_Name, SUM(i.Total) AS Sales
+FROM Invoice i, Customer c, Employee e
+ON i.CustomerId = c.CustomerId
+AND c.SupportRepId = e.EmployeeId
+WHERE i.InvoiceDate LIKE '2009%'
+GROUP BY e.EmployeeId
+ORDER BY Sales DESC
 
 
 -- 20. Which sales agent made the most in sales in 2010?
-
+-- Jane Peacock made the most sales in 2009 with 221.92
+SELECT e.FirstName || ' ' || e.LastName AS Employee_Name, SUM(i.Total) AS Sales
+FROM Invoice i, Customer c, Employee e
+ON i.CustomerId = c.CustomerId
+AND c.SupportRepId = e.EmployeeId
+WHERE i.InvoiceDate LIKE '2010%'
+GROUP BY e.EmployeeId
+ORDER BY Sales DESC
 
 -- 21. Which sales agent made the most in sales over all?
-
+-- Jane Peacock made the most sales in 2009 with 833.04
+SELECT e.FirstName || ' ' || e.LastName AS Employee_Name, SUM(i.Total) AS Sales
+FROM Invoice i, Customer c, Employee e
+ON i.CustomerId = c.CustomerId
+AND c.SupportRepId = e.EmployeeId
+GROUP BY e.EmployeeId
+ORDER BY Sales DESC
 
 -- 22. Provide a query that shows the # of customers assigned to each sales agent.
-
+SELECT e.EmployeeId AS Employee_Id, e.FirstName || ' ' || e.LastName AS Employee_Name, COUNT(c.SupportRepId)
+FROM Employee e, Customer c
+ON e.EmployeeId = c.SupportRepId
+Group By e.EmployeeId;
 
 -- 23. Provide a query that shows the total sales per country. Which country's customers spent the most?
-
+SELECT i.BillingCountry AS Country, COUNT(i.BillingCountry) AS Sales, SUM(i.Total) AS Total_Spent
+FROM Invoice i
+GROUP BY i.BillingCountry
+ORDER BY Total_Spent DESC
 
 -- 24. Provide a query that shows the most purchased track of 2013.
-
+SELECT substr(i.InvoiceDate, 1, 4) AS Year, il.InvoiceId, COUNT(t.Name) AS Num_Of_Purchases, t.*
+FROM Invoice i, InvoiceLine il, Track t
+ON i.InvoiceId = il.InvoiceId
+AND il.TrackId = t.TrackId
+WHERE i.InvoiceDate LIKE '2013%'
+GROUP BY t.Name
+ORDER BY Num_Of_Purchases DESC;
 
 -- 25. Provide a query that shows the top 5 most purchased tracks over all.
-
+SELECT COUNT(t.Name) AS Num_Of_Purchases, t.Name AS Song_Name
+FROM Invoice i, InvoiceLine il, Track t
+ON i.InvoiceId = il.InvoiceId
+AND il.TrackId = t.TrackId
+GROUP BY t.Name
+ORDER BY Num_Of_Purchases DESC
+LIMIT 5;
 
 -- 26. Provide a query that shows the top 3 best selling artists.
+SELECT SUM(i.Total) AS Total, ar.Name
+FROM Invoice i, InvoiceLine il, Track t, Album al, Artist ar
+ON i.InvoiceId = il.InvoiceId
+AND il.TrackId = t.TrackId
+AND t.AlbumId = al.AlbumId
+AND al.ArtistId = ar.ArtistId
+GROUP BY ar.ArtistId
+ORDER BY Total DESC
+LIMIT 3;
 
 
 -- 27. Provide a query that shows the most purchased Media Type.
+SELECT COUNT(t.MediaTypeId) AS Total, m.Name
+FROM Invoice i, InvoiceLine il, Track t, MediaType m
+ON i.InvoiceId = il.InvoiceId
+AND il.TrackId = t.TrackId
+AND t.MediaTypeId = m.MediaTypeId
+GROUP BY m.Name
+ORDER BY Total DESC
+LIMIT 1;
